@@ -1,0 +1,41 @@
+
+services:
+  db:
+    image: mysql:8.0
+    platform: linux/arm64
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: twitter
+      MYSQL_USER: tao
+      MYSQL_PASSWORD: tao123
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    image: django_x_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./django_x:/app
+    ports:
+      - "80:8000"
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_NAME=twitter
+      - DATABASE_USER=tao
+      - DATABASE_PASSWORD=tao123
+      - DATABASE_PORT=3306
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
